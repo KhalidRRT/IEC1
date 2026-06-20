@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصة عقود سدير إكس</title>
+<link rel="stylesheet" href="css/main.css">
+<style>
+  /* Extra inline styles for unique components */
+  .logo-mark { display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--accent);border-radius:8px;color:var(--primary);font-weight:900;font-size:16px;margin-left:8px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div style="display:flex;align-items:center;margin-bottom:4px">
+        <span class="logo-mark">SX</span>
+        <h1>منصة عقود سدير إكس</h1>
+      </div>
+      <p>نظام إدارة عقود العمل</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">الرئيسية</div>
+      <div class="nav-item active" data-page="dashboard">
+        <span class="icon">🏠</span> لوحة التحكم
+      </div>
+
+      <div class="nav-section">العقود</div>
+      <div class="nav-item" data-page="new-contract">
+        <span class="icon">➕</span> إنشاء عقد جديد
+      </div>
+      <div class="nav-item" data-page="contracts">
+        <span class="icon">📄</span> إدارة العقود
+      </div>
+
+      <div class="nav-section">الإعدادات</div>
+      <div class="nav-item" data-page="settings">
+        <span class="icon">⚙️</span> إعدادات الشركة
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>شركة سدير إكس © 2026</div>
+      <div style="margin-top:4px">نظام إدارة عقود العمل</div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- Settings Warning Banner -->
+    <div id="settings-banner" class="hidden" style="background:#fef3c7;border-bottom:2px solid #fcd34d;padding:10px 28px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:10px;">
+      <span>⚠️</span>
+      <span>يرجى إكمال بيانات شركة سدير إكس من <strong style="cursor:pointer;text-decoration:underline" onclick="App.navigate('settings')">صفحة إعدادات الشركة</strong> قبل إصدار العقد النهائي.</span>
+    </div>
+
+    <!-- ============================
+         PAGE: DASHBOARD
+    ============================= -->
+    <div id="page-dashboard" class="page">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">لوحة التحكم</div>
+          <div class="text-sm text-gray">مرحبًا بك في منصة عقود سدير إكس</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="App.navigate('new-contract')">➕ إنشاء عقد جديد</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📄</div>
+            <div><div class="stat-num" id="stat-total">0</div><div class="stat-label">إجمالي العقود</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">✏️</div>
+            <div><div class="stat-num" id="stat-draft">0</div><div class="stat-label">مسودات</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">✅</div>
+            <div><div class="stat-num" id="stat-ready">0</div><div class="stat-label">جاهزة</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🖊</div>
+            <div><div class="stat-num" id="stat-signed">0</div><div class="stat-label">موقّعة</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">آخر العقود</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="App.navigate('contracts')">عرض الكل ←</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>رقم العقد</th><th>اسم الموظف</th><th>المسمى الوظيفي</th><th>الحالة</th><th>إجراءات</th>
+              </tr></thead>
+              <tbody id="recent-contracts-body">
+                <tr><td colspan="5"><div class="empty-state" style="padding:30px"><div class="empty-state-icon">📄</div><p>لا توجد عقود بعد.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(135deg,#1a365d,#2a4a7f);color:white;margin-bottom:0">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+            <div>
+              <div style="font-size:18px;font-weight:800;margin-bottom:6px">ابدأ بإنشاء عقد عمل جديد</div>
+              <div style="font-size:13px;opacity:0.8">أدخل بيانات الموظف والوظيفة وسيقوم النظام بتوليد العقد تلقائيًا</div>
+            </div>
+            <button class="btn btn-accent btn-lg" onclick="App.navigate('new-contract')">➕ إنشاء عقد جديد</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         PAGE: SETTINGS
+    ============================= -->
+    <div id="page-settings" class="page hidden">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">إعدادات شركة سدير إكس</div>
+          <div class="text-sm text-gray">بيانات الشركة تُحفظ مرة واحدة وتظهر تلقائيًا في كل عقد</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="Settings.save()">💾 حفظ الإعدادات</button>
+        </div>
+      </div>
+      <div class="page-content">
+
+        <div class="alert alert-info no-print">
+          <span class="alert-icon">ℹ️</span>
+          <span>بيانات الطرف الأول (شركة سدير إكس) محفوظة هنا ولن تُطلب عند إنشاء كل عقد. أكملها مرة واحدة فقط.</span>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🏢 بيانات الشركة</div></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">اسم الشركة <span class="required">*</span></label>
+              <input id="s-company-name" class="form-control" type="text" value="شركة سدير إكس" readonly style="background:#f8fafc;color:#64748b">
+              <div class="form-hint">اسم الشركة ثابت: شركة سدير إكس</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">رقم السجل التجاري <span class="required">*</span></label>
+              <input id="s-cr" class="form-control" type="text" placeholder="أدخل رقم السجل التجاري">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">العنوان الوطني <span class="required">*</span></label>
+              <input id="s-address" class="form-control" type="text" placeholder="عنوان الشركة الكامل">
+            </div>
+            <div class="form-group">
+              <label class="form-label">المدينة <span class="required">*</span></label>
+              <input id="s-city" class="form-control" type="text" placeholder="الرياض">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">البريد الإلكتروني الرسمي</label>
+              <input id="s-email" class="form-control" type="email" placeholder="info@sadirx.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">رقم التواصل الرسمي</label>
+              <input id="s-phone" class="form-control" type="text" placeholder="+966 XX XXX XXXX">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">👤 بيانات ممثل الشركة</div></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">اسم ممثل الشركة <span class="required">*</span></label>
+              <input id="s-rep-name" class="form-control" type="text" value="خالد بن تركي القرني">
+            </div>
+            <div class="form-group">
+              <label class="form-label">الصفة <span class="required">*</span></label>
+              <input id="s-rep-title" class="form-control" type="text" value="الرئيس التنفيذي">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🖼 ملفات الهوية الرسمية</div></div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label">شعار الشركة</label>
+              <div class="file-upload-area">
+                <input type="file" accept="image/*" onchange="Settings.uploadImage('logo', this)">
+                <div class="file-upload-icon">🏷</div>
+                <div class="file-upload-text">رفع الشعار</div>
+                <div class="file-upload-hint">PNG أو SVG (شفاف يفضل)</div>
+              </div>
+              <div id="preview-logo" style="margin-top:8px"><p class="text-sm text-gray">لم يتم رفع ملف بعد</p></div>
+              <div class="form-group" style="margin-top:8px">
+                <label class="form-label">حجم الشعار في العقد: <span id="logo-size-val">80</span>px</label>
+                <input id="s-logo-size" type="range" min="40" max="160" value="80" class="form-control" style="padding:4px" oninput="document.getElementById('logo-size-val').textContent=this.value">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ختم الشركة</label>
+              <div class="file-upload-area">
+                <input type="file" accept="image/*" onchange="Settings.uploadImage('stamp', this)">
+                <div class="file-upload-icon">🔏</div>
+                <div class="file-upload-text">رفع الختم</div>
+                <div class="file-upload-hint">PNG بخلفية شفافة يفضل</div>
+              </div>
+              <div id="preview-stamp" style="margin-top:8px"><p class="text-sm text-gray">لم يتم رفع ملف بعد</p></div>
+              <div class="form-group" style="margin-top:8px">
+                <label class="form-label">حجم الختم: <span id="stamp-size-val">80</span>px</label>
+                <input id="s-stamp-size" type="range" min="40" max="160" value="80" class="form-control" style="padding:4px" oninput="document.getElementById('stamp-size-val').textContent=this.value">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">توقيع الرئيس التنفيذي</label>
+              <div class="file-upload-area">
+                <input type="file" accept="image/*" onchange="Settings.uploadImage('rep_signature', this)">
+                <div class="file-upload-icon">✍️</div>
+                <div class="file-upload-text">رفع التوقيع</div>
+                <div class="file-upload-hint">PNG بخلفية شفافة يفضل</div>
+              </div>
+              <div id="preview-rep_signature" style="margin-top:8px"><p class="text-sm text-gray">لم يتم رفع ملف بعد</p></div>
+              <div class="form-group" style="margin-top:8px">
+                <label class="form-label">حجم التوقيع: <span id="sig-size-val">80</span>px</label>
+                <input id="s-sig-size" type="range" min="40" max="160" value="80" class="form-control" style="padding:4px" oninput="document.getElementById('sig-size-val').textContent=this.value">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔢 ترقيم العقود</div></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">بادئة رقم العقد</label>
+              <input id="s-prefix" class="form-control" type="text" value="SX-HR-CON">
+              <div class="form-hint">مثال: SX-HR-CON-2026-001</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">معاينة رقم العقد القادم</label>
+              <div class="form-control" style="background:#f8fafc;color:#475569" id="contract-num-preview">SX-HR-CON-2026-001</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end">
+          <button class="btn btn-primary btn-lg" onclick="Settings.save()">💾 حفظ جميع الإعدادات</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         PAGE: NEW CONTRACT
+    ============================= -->
+    <div id="page-new-contract" class="page hidden">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">إنشاء عقد عمل جديد</div>
+          <div class="text-sm text-gray" id="step-counter">الخطوة 1 من 6</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="ContractForm.saveDraft()">💾 حفظ مسودة</button>
+          <button class="btn btn-ghost" onclick="App.navigate('contracts')">✕ إلغاء</button>
+        </div>
+      </div>
+
+      <!-- Steps Bar -->
+      <div class="steps-bar no-print">
+        <div class="step-item active" id="step-1">
+          <div class="step-circle">1</div>
+          <div class="step-label">بيانات الموظف</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" id="step-2">
+          <div class="step-circle">2</div>
+          <div class="step-label">بيانات الوظيفة</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" id="step-3">
+          <div class="step-circle">3</div>
+          <div class="step-label">بيانات العقد</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" id="step-4">
+          <div class="step-circle">4</div>
+          <div class="step-label">الراتب والمزايا</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" id="step-5">
+          <div class="step-circle">5</div>
+          <div class="step-label">ساعات العمل</div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item" id="step-6">
+          <div class="step-circle">6</div>
+          <div class="step-label">البنود القانونية</div>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- STEP 1: Employee Data -->
+        <div class="step-panel" id="step-panel-1">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">👤 بيانات الطرف الثاني (الموظف)</div>
+              <div class="card-subtitle">أدخل بيانات الموظف الأساسية</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">اسم الموظف كاملًا <span class="required">*</span></label>
+                <input id="f-emp-name" class="form-control" type="text" placeholder="الاسم الرباعي كاملًا">
+              </div>
+              <div class="form-group">
+                <label class="form-label">رقم الهوية / الإقامة <span class="required">*</span></label>
+                <input id="f-emp-id" class="form-control" type="text" placeholder="1XXXXXXXXX">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">الجنسية <span class="required">*</span></label>
+                <input id="f-emp-nationality" class="form-control" type="text" placeholder="سعودي / مصري / ...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">رقم الجوال</label>
+                <input id="f-emp-phone" class="form-control" type="text" placeholder="+966 5X XXX XXXX">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">البريد الإلكتروني</label>
+                <input id="f-emp-email" class="form-control" type="email" placeholder="employee@email.com">
+              </div>
+              <div class="form-group">
+                <label class="form-label">العنوان (اختياري)</label>
+                <input id="f-emp-address" class="form-control" type="text" placeholder="المدينة، الحي">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">توقيع الموظف (اختياري)</label>
+              <div class="file-upload-area" style="max-width:350px">
+                <input type="file" accept="image/*" onchange="ContractForm.uploadEmpSig(this)">
+                <div class="file-upload-icon">✍️</div>
+                <div class="file-upload-text">رفع توقيع الموظف</div>
+                <div class="file-upload-hint">PNG بخلفية شفافة يفضل</div>
+              </div>
+              <div id="emp-sig-preview" style="margin-top:8px"><p class="text-sm text-gray">لم يتم رفع توقيع بعد</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Job Data -->
+        <div class="step-panel hidden" id="step-panel-2">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">💼 بيانات الوظيفة</div>
+              <div class="card-subtitle">تفاصيل الوظيفة والمهام</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">المسمى الوظيفي <span class="required">*</span></label>
+                <input id="f-job-title" class="form-control" type="text" placeholder="مثال: مطور برمجيات أول">
+              </div>
+              <div class="form-group">
+                <label class="form-label">الإدارة / القسم <span class="required">*</span></label>
+                <input id="f-department" class="form-control" type="text" placeholder="مثال: قسم التقنية">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">جهة الارتباط الإداري <span class="required">*</span></label>
+                <input id="f-reporting-to" class="form-control" type="text" placeholder="مثال: مدير القسم / الرئيس التنفيذي">
+              </div>
+              <div class="form-group">
+                <label class="form-label">مقر العمل <span class="required">*</span></label>
+                <input id="f-work-location" class="form-control" type="text" placeholder="مثال: الرياض - المركز الرئيسي">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">طبيعة العمل <span class="required">*</span></label>
+              <select id="f-work-mode" class="form-control">
+                <option value="حضوري">حضوري</option>
+                <option value="عن بعد">عن بعد</option>
+                <option value="هجين (حضوري وعن بعد)">هجين (حضوري وعن بعد)</option>
+                <option value="حسب الحاجة">حسب الحاجة</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <label class="form-label" style="margin:0">المهام العامة للوظيفة</label>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="ContractForm.autoGenerateDuties()">⚡ توليد تلقائي</button>
+              </div>
+              <textarea id="f-job-duties" class="form-control" rows="6" placeholder="اكتب مهام الوظيفة (كل مهمة في سطر)&#10;أو اضغط زر التوليد التلقائي"></textarea>
+              <div class="form-hint">يمكنك تعديل المهام المولّدة تلقائيًا</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Contract Data -->
+        <div class="step-panel hidden" id="step-panel-3">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">📋 بيانات العقد</div>
+              <div class="card-subtitle">نوع العقد ومدته وشروطه</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">نوع العقد <span class="required">*</span></label>
+                <select id="f-contract-type" class="form-control" onchange="ContractForm.toggleEndDate()">
+                  <option value="محدد المدة">محدد المدة</option>
+                  <option value="غير محدد المدة">غير محدد المدة</option>
+                  <option value="دوام جزئي">دوام جزئي</option>
+                  <option value="عمل مرن">عمل مرن</option>
+                  <option value="تدريب منتهي بالتوظيف">تدريب منتهي بالتوظيف</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">مدينة إبرام العقد</label>
+                <input id="f-contract-city" class="form-control" type="text" placeholder="الرياض" value="الرياض">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">تاريخ بداية العمل <span class="required">*</span></label>
+                <input id="f-start-date" class="form-control" type="date">
+              </div>
+              <div class="form-group" id="end-date-group">
+                <label class="form-label">تاريخ نهاية العقد</label>
+                <input id="f-end-date" class="form-control" type="date">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">مدة العقد</label>
+                <input id="f-contract-duration" class="form-control" type="text" placeholder="مثال: سنة واحدة / 12 شهرًا">
+              </div>
+              <div class="form-group">
+                <label class="form-label">فترة التجربة</label>
+                <select id="f-probation" class="form-control">
+                  <option value="90 يومًا">90 يومًا (ثلاثة أشهر)</option>
+                  <option value="180 يومًا">180 يومًا (ستة أشهر)</option>
+                  <option value="لا يوجد">لا توجد فترة تجربة</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">فترة الإشعار عند الإنهاء</label>
+                <select id="f-notice-period" class="form-control">
+                  <option value="30 يومًا">30 يومًا</option>
+                  <option value="60 يومًا">60 يومًا</option>
+                  <option value="90 يومًا">90 يومًا</option>
+                  <option value="وفق نظام العمل السعودي">وفق نظام العمل السعودي</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">قابل للتجديد؟</label>
+                <div style="display:flex;align-items:center;gap:10px;padding-top:10px">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="f-renewable" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                  <span class="text-sm">نعم، قابل للتجديد باتفاق الطرفين</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Salary & Benefits -->
+        <div class="step-panel hidden" id="step-panel-4">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">💰 الراتب والبدلات والمزايا</div></div>
+            </div>
+            <div class="form-row-3">
+              <div class="form-group">
+                <label class="form-label">الراتب الأساسي (ريال) <span class="required">*</span></label>
+                <input id="f-basic-salary" class="form-control" type="number" min="0" placeholder="0" oninput="ContractForm.calcTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">بدل السكن (ريال)</label>
+                <input id="f-housing" class="form-control" type="number" min="0" placeholder="0" oninput="ContractForm.calcTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">بدل النقل (ريال)</label>
+                <input id="f-transport" class="form-control" type="number" min="0" placeholder="0" oninput="ContractForm.calcTotal()">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">بدلات أخرى</label>
+                <input id="f-other-allowances" class="form-control" type="text" placeholder="مثال: بدل هاتف 300 ريال">
+              </div>
+              <div class="form-group">
+                <label class="form-label">إجمالي الراتب الشهري (ريال)</label>
+                <input id="f-total-salary" class="form-control" type="number" min="0" placeholder="يحسب تلقائيًا">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">تاريخ صرف الراتب</label>
+                <input id="f-pay-date" class="form-control" type="text" placeholder="الخامس من كل شهر" value="الخامس من كل شهر">
+              </div>
+              <div class="form-group">
+                <label class="form-label">طريقة صرف الراتب</label>
+                <select id="f-pay-method" class="form-control">
+                  <option value="تحويل بنكي">تحويل بنكي</option>
+                  <option value="نقدًا">نقدًا</option>
+                  <option value="شيك">شيك</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">المزايا الإضافية</label>
+              <textarea id="f-benefits" class="form-control" rows="3" placeholder="مثال: تذاكر سفر سنوية، إجازة إضافية، ..."></textarea>
+            </div>
+            <hr class="divider">
+            <div class="form-row">
+              <div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>التأمينات الاجتماعية</h4>
+                    <p>يُسجَّل الموظف في نظام التأمينات الاجتماعية</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="f-social-ins" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="toggle-group">
+                  <div class="toggle-info">
+                    <h4>التأمين الطبي</h4>
+                    <p>يحصل الموظف على تأمين طبي</p>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="f-med-ins" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">فئة التأمين الطبي</label>
+                <input id="f-med-class" class="form-control" type="text" placeholder="مثال: الفئة الثانية / VIP">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Working Hours & Leave -->
+        <div class="step-panel hidden" id="step-panel-5">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">⏰ ساعات العمل والإجازات</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">أيام العمل الأسبوعية</label>
+                <input id="f-working-days" class="form-control" type="text" value="الأحد - الخميس" placeholder="الأحد - الخميس">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ساعات العمل اليومية</label>
+                <select id="f-working-hours" class="form-control">
+                  <option value="8 ساعات يوميًا">8 ساعات يوميًا</option>
+                  <option value="7 ساعات يوميًا">7 ساعات يوميًا</option>
+                  <option value="6 ساعات يوميًا">6 ساعات يوميًا</option>
+                  <option value="4 ساعات يوميًا">4 ساعات يوميًا (دوام جزئي)</option>
+                  <option value="مرنة حسب طبيعة العمل">مرنة حسب طبيعة العمل</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">أيام الراحة الأسبوعية</label>
+                <input id="f-rest-days" class="form-control" type="text" value="الجمعة والسبت" placeholder="الجمعة والسبت">
+              </div>
+              <div class="form-group">
+                <label class="form-label">الإجازة السنوية</label>
+                <select id="f-annual-leave" class="form-control">
+                  <option value="21 يومًا">21 يومًا (السنة الأولى)</option>
+                  <option value="30 يومًا">30 يومًا</option>
+                  <option value="وفق نظام العمل السعودي">وفق نظام العمل السعودي</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">الإجازات الرسمية</label>
+                <input id="f-official-holidays" class="form-control" type="text" value="وفق التقويم الرسمي للمملكة العربية السعودية">
+              </div>
+              <div class="form-group">
+                <label class="form-label">الإجازات المرضية</label>
+                <input id="f-sick-leave" class="form-control" type="text" value="وفق نظام العمل السعودي">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">إجازات إضافية (اختياري)</label>
+              <textarea id="f-additional-leaves" class="form-control" rows="2" placeholder="مثال: إجازة زواج 5 أيام، إجازة وفاة 3 أيام..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 6: Legal Clauses -->
+        <div class="step-panel hidden" id="step-panel-6">
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">⚖️ البنود القانونية والتنظيمية</div>
+              <div class="card-subtitle">فعّل أو عطّل البنود حسب الحاجة</div></div>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 السرية وعدم الإفصاح</h4>
+                <p>يلتزم الموظف بسرية معلومات الشركة وعملائها</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-confidentiality" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 الملكية الفكرية</h4>
+                <p>جميع المخرجات ضمن نطاق العمل ملك للشركة</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-ip" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 عدم تعارض المصالح</h4>
+                <p>الإفصاح عن أي تعارض محتمل وعدم الإضرار بالشركة</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-conflict" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 الالتزام بالأنظمة والسياسات الداخلية</h4>
+                <p>الالتزام بلوائح وإجراءات الشركة</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-compliance" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 الانضباط المهني</h4>
+                <p>الالتزام بمعايير السلوك المهني</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-discipline" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 العهد والأجهزة والحسابات</h4>
+                <p>مسؤولية الموظف عن ما يُسلَّم له من أجهزة وصلاحيات</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-assets" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 تسليم العهد والملفات عند الانتهاء</h4>
+                <p>إعادة جميع ممتلكات الشركة عند انتهاء العقد</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-handover" checked><span class="toggle-slider"></span></label>
+            </div>
+
+            <div class="toggle-group">
+              <div class="toggle-info">
+                <h4>📌 عدم المنافسة</h4>
+                <p>عدم العمل في نشاط منافس خلال فترة محددة</p>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" id="cl-noncompete" onchange="toggleNonCompeteWarning(this)"><span class="toggle-slider"></span></label>
+            </div>
+
+            <div id="noncompete-warning" class="alert alert-warning hidden" style="margin-top:12px">
+              <span class="alert-icon">⚠️</span>
+              <span>يتطلب بند عدم المنافسة تحديد النطاق والمدة والمكان بدقة، ويجب مراجعته من مختص قانوني قبل اعتماده.</span>
+            </div>
+
+            <hr class="divider">
+            <div class="form-group">
+              <label class="form-label">شروط خاصة (اختياري)</label>
+              <textarea id="f-special-conditions" class="form-control" rows="4" placeholder="أدخل أي شروط أو بنود إضافية خاصة بهذا العقد..."></textarea>
+            </div>
+
+            <div class="alert alert-warning">
+              <span class="alert-icon">⚠️</span>
+              <span><strong>تنبيه قانوني:</strong> هذا العقد نموذج تنظيمي لأغراض إدارية. يجب مراجعته من مختص قانوني قبل الاعتماد النهائي أو الاستخدام الرسمي.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div style="display:flex;justify-content:space-between;margin-top:8px" class="no-print">
+          <button id="step-prev-btn" class="btn btn-outline" onclick="ContractForm.prevStep()" disabled>◀ السابق</button>
+          <button id="step-next-btn" class="btn btn-primary" onclick="ContractForm.nextStep()">التالي ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         PAGE: CONTRACTS LIST
+    ============================= -->
+    <div id="page-contracts" class="page hidden">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">إدارة العقود</div>
+          <div class="text-sm text-gray">جميع عقود العمل المحفوظة في النظام</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="App.navigate('new-contract')">➕ إنشاء عقد جديد</button>
+        </div>
+      </div>
+      <div class="page-content">
+        <div class="card" style="padding:16px 24px">
+          <div class="filter-bar">
+            <div class="search-input-wrap">
+              <span class="search-icon">🔍</span>
+              <input id="search-contracts" class="form-control" type="text" placeholder="بحث بالاسم أو رقم العقد أو المسمى..." oninput="ContractsList.filterContracts()">
+            </div>
+            <select id="filter-status" class="form-control" style="width:180px" onchange="ContractsList.filterContracts()">
+              <option value="">كل الحالات</option>
+              <option value="draft">مسودة</option>
+              <option value="ready">جاهز</option>
+              <option value="signed">موقّع</option>
+              <option value="expired">منتهي</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>رقم العقد</th>
+                <th>اسم الموظف</th>
+                <th>المسمى الوظيفي</th>
+                <th>نوع العقد</th>
+                <th>تاريخ الإنشاء</th>
+                <th>الحالة</th>
+                <th>إجراءات</th>
+              </tr></thead>
+              <tbody id="contracts-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================
+         PAGE: PREVIEW
+    ============================= -->
+    <div id="page-preview" class="page hidden">
+      <div class="topbar no-print">
+        <div>
+          <div class="topbar-title">معاينة العقد — <span id="preview-contract-number"></span></div>
+          <div id="preview-status"></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="App.navigate('contracts')">↩ العودة للقائمة</button>
+          <button class="btn btn-ghost btn-sm" onclick="Export.markSigned()">🖊 تعليم كموقّع</button>
+          <button class="btn btn-outline" onclick="Export.word()">📝 تنزيل Word</button>
+          <button class="btn btn-primary" onclick="Export.pdf()">📄 طباعة / PDF</button>
+        </div>
+      </div>
+
+      <div class="page-content" style="padding-top:16px">
+        <div style="display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start" class="no-print">
+
+          <!-- Contract HTML Preview -->
+          <div>
+            <div class="card" style="padding:0;overflow:hidden">
+              <div style="padding:12px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+                <span class="font-bold text-sm text-primary">📄 معاينة العقد</span>
+                <span class="text-xs text-gray">WYSIWYG Preview</span>
+              </div>
+              <div id="contract-html-preview" style="padding:20px;max-height:900px;overflow-y:auto;direction:rtl"></div>
+            </div>
+          </div>
+
+          <!-- Editor Panel -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">✏️ محرر النص</div>
+              </div>
+              <div class="alert alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">ℹ️</span>
+                <span>يمكنك تعديل نص العقد مباشرة ثم اضغط "حفظ وتحديث المعاينة"</span>
+              </div>
+              <textarea id="contract-editor-textarea" placeholder="نص العقد..."></textarea>
+              <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+                <button class="btn btn-primary btn-sm w-full" onclick="Export.saveEdited()">💾 حفظ وتحديث المعاينة</button>
+                <button class="btn btn-outline btn-sm w-full" onclick="Export.word()">📝 تنزيل Word</button>
+                <button class="btn btn-ghost btn-sm w-full" onclick="Export.pdf()">📄 طباعة / PDF</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px">⚠️ تنبيه قانوني</div>
+              <div class="alert alert-warning" style="margin:0">
+                <span class="alert-icon">⚠️</span>
+                <span>هذا العقد نموذج تنظيمي لأغراض إدارية. يجب مراجعته من مختص قانوني قبل الاعتماد النهائي أو الاستخدام الرسمي.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRINT-ONLY area -->
+        <div id="contract-html-preview-print" class="hidden" style="direction:rtl"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/db.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/app.js"></script>
+<script>
+  function toggleNonCompeteWarning(checkbox) {
+    document.getElementById('noncompete-warning').classList.toggle('hidden', !checkbox.checked);
+  }
+
+  // Override print to show only contract
+  window.addEventListener('beforeprint', () => {
+    const preview = document.getElementById('contract-html-preview');
+    const printArea = document.getElementById('contract-html-preview-print');
+    if (preview && printArea) {
+      printArea.innerHTML = preview.innerHTML;
+      printArea.classList.remove('hidden');
+    }
+  });
+  window.addEventListener('afterprint', () => {
+    const printArea = document.getElementById('contract-html-preview-print');
+    if (printArea) {
+      printArea.classList.add('hidden');
+      printArea.innerHTML = '';
+    }
+  });
+
+  // Update contract number preview in settings
+  document.addEventListener('DOMContentLoaded', () => {
+    const prefixEl = document.getElementById('s-prefix');
+    const previewEl = document.getElementById('contract-num-preview');
+    if (prefixEl && previewEl) {
+      prefixEl.addEventListener('input', () => {
+        const year = new Date().getFullYear();
+        previewEl.textContent = `${prefixEl.value}-${year}-001`;
+      });
+    }
+  });
+</script>
+</body>
+</html>
