@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, Filter } from "lucide-react";
+import { Plus, LayoutList, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Permissions } from "@/lib/permissions";
 import {
   TASK_STATUS_LABELS, TASK_STATUS_COLORS,
@@ -13,16 +13,26 @@ import {
   formatDate,
 } from "@/lib/utils";
 import { TaskStatus } from "@prisma/client";
+import KanbanBoard from "@/components/tasks/KanbanBoard";
+
+export const dynamic = "force-dynamic";
 
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: { projectId?: string; status?: string; priority?: string; overdue?: string };
+  searchParams: {
+    projectId?: string;
+    status?: string;
+    priority?: string;
+    overdue?: string;
+    view?: string;
+  };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const isExecutor = ["EXECUTOR", "READER"].includes(session.user.role);
+  const view = searchParams.view === "kanban" ? "kanban" : "table";
 
   const where: any = {
     ...(searchParams.projectId && { projectId: searchParams.projectId }),
@@ -53,10 +63,31 @@ export default async function TasksPage({
 
   const canCreate = Permissions.canCreateTask(session.user.role);
 
-  const statusCounts = tasks.reduce((acc, t) => {
-    acc[t.status] = (acc[t.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Build filter href preserving other params
+  function filterHref(extra: Record<string, string>) {
+    const p = new URLSearchParams();
+    if (searchParams.view) p.set("view", searchParams.view);
+    Object.entries(extra).forEach(([k, v]) => p.set(k, v));
+    return `/tasks?${p.toString()}`;
+  }
+
+  function viewHref(v: string) {
+    const p = new URLSearchParams();
+    p.set("view", v);
+    if (searchParams.status) p.set("status", searchParams.status);
+    if (searchParams.projectId) p.set("projectId", searchParams.projectId);
+    if (searchParams.overdue) p.set("overdue", searchParams.overdue);
+    return `/tasks?${p.toString()}`;
+  }
+
+  const QUICK_FILTERS = [
+    { label: "الكل",             href: filterHref({}) },
+    { label: "جديدة",            href: filterHref({ status: "NEW" }) },
+    { label: "قيد التنفيذ",      href: filterHref({ status: "IN_PROGRESS" }) },
+    { label: "بانتظار مراجعة",   href: filterHref({ status: "PENDING_REVIEW" }) },
+    { label: "المتأخرة",          href: filterHref({ overdue: "true" }) },
+    { label: "مكتملة",           href: filterHref({ status: "COMPLETED" }) },
+  ];
 
   return (
     <div className="p-6">
@@ -66,26 +97,42 @@ export default async function TasksPage({
           <h1 className="text-2xl font-bold text-gray-900">المهام</h1>
           <p className="text-gray-500 text-sm mt-1">{tasks.length} مهمة</p>
         </div>
-        {canCreate && (
-          <Link href="/tasks/new">
-            <Button>
-              <Plus className="h-4 w-4" />
-              مهمة جديدة
-            </Button>
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {/* تبديل العرض */}
+          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+            <Link
+              href={viewHref("table")}
+              className={`p-2 transition-colors ${
+                view === "table" ? "bg-primary text-white" : "hover:bg-gray-50 text-gray-500"
+              }`}
+              title="عرض جدول"
+            >
+              <LayoutList className="h-4 w-4" />
+            </Link>
+            <Link
+              href={viewHref("kanban")}
+              className={`p-2 transition-colors ${
+                view === "kanban" ? "bg-primary text-white" : "hover:bg-gray-50 text-gray-500"
+              }`}
+              title="عرض كانبان"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Link>
+          </div>
+          {canCreate && (
+            <Link href="/tasks/new">
+              <Button>
+                <Plus className="h-4 w-4" />
+                مهمة جديدة
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* فلاتر سريعة */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">
-        {[
-          { label: "الكل", href: "/tasks" },
-          { label: "جديدة", href: "/tasks?status=NEW" },
-          { label: "قيد التنفيذ", href: "/tasks?status=IN_PROGRESS" },
-          { label: "بانتظار مراجعة", href: "/tasks?status=PENDING_REVIEW" },
-          { label: "المتأخرة", href: "/tasks?overdue=true" },
-          { label: "مكتملة", href: "/tasks?status=COMPLETED" },
-        ].map((f) => (
+        {QUICK_FILTERS.map((f) => (
           <Link
             key={f.label}
             href={f.href}
@@ -96,7 +143,7 @@ export default async function TasksPage({
         ))}
       </div>
 
-      {/* جدول المهام */}
+      {/* المحتوى */}
       {tasks.length === 0 ? (
         <div className="text-center py-20 text-gray-400">
           <p className="text-lg">لا توجد مهام</p>
@@ -109,6 +156,8 @@ export default async function TasksPage({
             </Link>
           )}
         </div>
+      ) : view === "kanban" ? (
+        <KanbanBoard tasks={tasks} />
       ) : (
         <Card className="border-0 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -131,10 +180,7 @@ export default async function TasksPage({
                     task.status !== "COMPLETED";
 
                   return (
-                    <tr
-                      key={task.id}
-                      className="table-row-hover"
-                    >
+                    <tr key={task.id} className="table-row-hover">
                       <td className="px-5 py-3">
                         <Link href={`/tasks/${task.id}`} className="group">
                           <p className="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors">
@@ -165,13 +211,13 @@ export default async function TasksPage({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`badge text-xs ${TASK_PRIORITY_COLORS[task.priority]}`}>
-                          {TASK_PRIORITY_LABELS[task.priority]}
+                        <span className={`badge text-xs ${TASK_PRIORITY_COLORS[task.priority as keyof typeof TASK_PRIORITY_COLORS]}`}>
+                          {TASK_PRIORITY_LABELS[task.priority as keyof typeof TASK_PRIORITY_LABELS]}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`badge text-xs ${TASK_STATUS_COLORS[task.status]}`}>
-                          {TASK_STATUS_LABELS[task.status]}
+                        <span className={`badge text-xs ${TASK_STATUS_COLORS[task.status as keyof typeof TASK_STATUS_COLORS]}`}>
+                          {TASK_STATUS_LABELS[task.status as keyof typeof TASK_STATUS_LABELS]}
                         </span>
                       </td>
                       <td className="px-4 py-3">

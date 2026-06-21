@@ -2,8 +2,6 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
-import { Toaster } from "@/components/ui/toaster";
-
 export default async function DashboardLayout({
   children,
 }: {
@@ -28,8 +26,6 @@ export default async function DashboardLayout({
       <main className="flex-1 overflow-y-auto">
         {children}
       </main>
-
-      <Toaster />
     </div>
   );
 }

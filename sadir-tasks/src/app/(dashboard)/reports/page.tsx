@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, FileText, Filter, BarChart3 } from "lucide-react";
+import { Download, FileSpreadsheet, Filter, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -65,6 +65,18 @@ export default function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function exportExcel() {
+    if (!data) return;
+    const params = new URLSearchParams();
+    if (filters.projectId && filters.projectId !== "all") params.set("projectId", filters.projectId);
+    if (filters.assigneeId && filters.assigneeId !== "all") params.set("assigneeId", filters.assigneeId);
+    if (filters.status && filters.status !== "all") params.set("status", filters.status);
+    if (filters.from) params.set("from", filters.from);
+    if (filters.to) params.set("to", filters.to);
+    window.location.href = `/api/reports/export?${params}`;
+    toast({ title: "جارٍ تحميل ملف Excel..." });
   }
 
   function exportCSV() {
@@ -219,10 +231,16 @@ export default function ReportsPage() {
               <h2 className="font-semibold text-gray-800">
                 النتائج ({data.tasks.length} مهمة)
               </h2>
-              <Button variant="outline" size="sm" onClick={exportCSV}>
-                <Download className="h-4 w-4" />
-                تصدير CSV
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={exportExcel}>
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportCSV}>
+                  <Download className="h-4 w-4" />
+                  CSV
+                </Button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
