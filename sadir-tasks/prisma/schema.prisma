@@ -1,0 +1,409 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── الأدوار ───────────────────────────────────────────────────────────────
+enum UserRole {
+  SYSTEM_ADMIN  // مدير النظام
+  PROJECT_MANAGER // مدير المشروع
+  SUPERVISOR    // مشرف
+  EXECUTOR      // منفذ
+  READER        // قارئ
+}
+
+// ─── حالة المستخدم ──────────────────────────────────────────────────────
+enum UserStatus {
+  ACTIVE    // نشط
+  INACTIVE  // غير نشط
+}
+
+// ─── حالة المشروع ──────────────────────────────────────────────────────
+enum ProjectStatus {
+  PLANNED    // مخطط
+  ACTIVE     // نشط
+  ON_HOLD    // معلق
+  COMPLETED  // مكتمل
+  ARCHIVED   // مؤرشف
+}
+
+// ─── حالة المهمة ──────────────────────────────────────────────────────
+enum TaskStatus {
+  DRAFT        // مسودة
+  NEW          // جديدة
+  IN_PROGRESS  // قيد التنفيذ
+  PENDING_REVIEW // بانتظار مراجعة
+  COMPLETED    // مكتملة
+  OVERDUE      // متأخرة
+  ON_HOLD      // معلقة
+}
+
+// ─── أولوية المهمة ──────────────────────────────────────────────────────
+enum TaskPriority {
+  LOW      // منخفضة
+  MEDIUM   // متوسطة
+  HIGH     // عالية
+  URGENT   // عاجلة
+}
+
+// ─── أنواع الحقول المخصصة ─────────────────────────────────────────────
+enum CustomFieldType {
+  SHORT_TEXT    // نص قصير
+  LONG_TEXT     // نص طويل
+  NUMBER        // رقم
+  DATE          // تاريخ
+  SINGLE_SELECT // اختيار واحد
+  MULTI_SELECT  // اختيار متعدد
+  PERSON        // شخص
+  URL           // رابط
+  YES_NO        // نعم / لا
+}
+
+// ─── أنواع سجلات النشاط ─────────────────────────────────────────────
+enum ActivityType {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_DELETED
+  TASK_CREATED
+  TASK_SAVED_AS_DRAFT
+  TASK_ISSUED
+  TASK_STATUS_CHANGED
+  TASK_ASSIGNEE_CHANGED
+  TASK_FIELD_UPDATED
+  TASK_COMPLETED
+  TASK_DELETED
+  COMMENT_ADDED
+  ATTACHMENT_UPLOADED
+  CUSTOM_FIELD_ADDED
+  CUSTOM_FIELD_UPDATED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  USER_CREATED
+  USER_UPDATED
+}
+
+// ─── حالة إرسال الإشعار ─────────────────────────────────────────────
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+// ─── جدول المستخدمين ────────────────────────────────────────────────
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  password      String
+  role          UserRole   @default(EXECUTOR)
+  status        UserStatus @default(ACTIVE)
+  image         String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // العلاقات
+  sessions              Session[]
+  accounts              Account[]
+  ownedProjects         Project[]         @relation("ProjectOwner")
+  projectMemberships    ProjectMember[]
+  assignedTasks         TaskAssignee[]
+  issuedTasks           Task[]            @relation("TaskIssuer")
+  primaryTasks          Task[]            @relation("TaskPrimaryAssignee")
+  comments              Comment[]
+  attachments           Attachment[]
+  activityLogs          ActivityLog[]
+  notificationLogs      NotificationLog[]
+  personFieldValues     TaskCustomFieldValue[] @relation("PersonFieldUser")
+
+  @@map("users")
+}
+
+// ─── جدول الجلسات (NextAuth) ──────────────────────────────────────
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── جدول المشاريع ────────────────────────────────────────────────
+model Project {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?       @db.Text
+  status          ProjectStatus @default(PLANNED)
+  startDate       DateTime?
+  endDate         DateTime?
+  completionRate  Float         @default(0)
+  ownerId         String
+  templateId      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // العلاقات
+  owner           User              @relation("ProjectOwner", fields: [ownerId], references: [id])
+  template        ProjectTemplate?  @relation(fields: [templateId], references: [id])
+  members         ProjectMember[]
+  tasks           Task[]
+  customFields    CustomField[]
+  activityLogs    ActivityLog[]
+
+  @@map("projects")
+}
+
+// ─── جدول أعضاء المشروع ─────────────────────────────────────────
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      UserRole @default(EXECUTOR)
+  joinedAt  DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+// ─── جدول المهام ──────────────────────────────────────────────────
+model Task {
+  id                String       @id @default(cuid())
+  title             String
+  description       String?      @db.Text
+  status            TaskStatus   @default(DRAFT)
+  priority          TaskPriority @default(MEDIUM)
+  dueDate           DateTime?
+  issuedAt          DateTime?
+  projectId         String
+  primaryAssigneeId String?
+  issuedById        String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  // العلاقات
+  project           Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  primaryAssignee   User?                 @relation("TaskPrimaryAssignee", fields: [primaryAssigneeId], references: [id])
+  issuedBy          User?                 @relation("TaskIssuer", fields: [issuedById], references: [id])
+  assignees         TaskAssignee[]
+  customFieldValues TaskCustomFieldValue[]
+  comments          Comment[]
+  attachments       Attachment[]
+  activityLogs      ActivityLog[]
+  notificationLogs  NotificationLog[]
+
+  @@map("tasks")
+}
+
+// ─── جدول منفذي المهام (متعدد) ──────────────────────────────────
+model TaskAssignee {
+  id       String @id @default(cuid())
+  taskId   String
+  userId   String
+
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@map("task_assignees")
+}
+
+// ─── جدول الحقول المخصصة ─────────────────────────────────────────
+model CustomField {
+  id                String          @id @default(cuid())
+  projectId         String
+  name              String
+  type              CustomFieldType
+  description       String?
+  isRequired        Boolean         @default(false)
+  showInTable       Boolean         @default(true)
+  showInReport      Boolean         @default(true)
+  isExecutorEditable Boolean        @default(true)
+  isFilterable      Boolean         @default(false)
+  order             Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  // العلاقات
+  project           Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  options           CustomFieldOption[]
+  taskValues        TaskCustomFieldValue[]
+
+  @@map("custom_fields")
+}
+
+// ─── جدول خيارات الحقول المخصصة ──────────────────────────────────
+model CustomFieldOption {
+  id            String      @id @default(cuid())
+  customFieldId String
+  label         String
+  color         String?
+  order         Int         @default(0)
+
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  @@map("custom_field_options")
+}
+
+// ─── جدول قيم الحقول المخصصة للمهام ──────────────────────────────
+model TaskCustomFieldValue {
+  id            String      @id @default(cuid())
+  taskId        String
+  customFieldId String
+  textValue     String?     @db.Text
+  numberValue   Float?
+  dateValue     DateTime?
+  boolValue     Boolean?
+  selectedOptions String[]  // للاختيار الواحد أو المتعدد (تخزن IDs الخيارات)
+  personUserId  String?     // للحقل من نوع Person
+  updatedAt     DateTime    @updatedAt
+
+  task          Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  personUser    User?       @relation("PersonFieldUser", fields: [personUserId], references: [id])
+
+  @@unique([taskId, customFieldId])
+  @@map("task_custom_field_values")
+}
+
+// ─── جدول التعليقات ───────────────────────────────────────────────
+model Comment {
+  id          String       @id @default(cuid())
+  taskId      String
+  authorId    String
+  content     String       @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id])
+  attachments Attachment[]
+
+  @@map("comments")
+}
+
+// ─── جدول المرفقات ────────────────────────────────────────────────
+model Attachment {
+  id          String    @id @default(cuid())
+  taskId      String?
+  commentId   String?
+  uploadedById String
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  storagePath String
+  createdAt   DateTime  @default(now())
+
+  task        Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  comment     Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  uploadedBy  User      @relation(fields: [uploadedById], references: [id])
+
+  @@map("attachments")
+}
+
+// ─── جدول سجل النشاط ─────────────────────────────────────────────
+model ActivityLog {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  userId      String
+  projectId   String?
+  taskId      String?
+  description String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+
+  user        User         @relation(fields: [userId], references: [id])
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  task        Task?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@map("activity_logs")
+}
+
+// ─── جدول سجل الإشعارات ──────────────────────────────────────────
+model NotificationLog {
+  id          String             @id @default(cuid())
+  taskId      String
+  recipientId String
+  type        String             @default("TASK_ISSUED")
+  status      NotificationStatus @default(PENDING)
+  subject     String
+  error       String?
+  sentAt      DateTime?
+  createdAt   DateTime           @default(now())
+
+  task        Task               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  recipient   User               @relation(fields: [recipientId], references: [id])
+
+  @@map("notification_logs")
+}
+
+// ─── جدول قوالب المشاريع ─────────────────────────────────────────
+model ProjectTemplate {
+  id          String                  @id @default(cuid())
+  name        String
+  description String?
+  isDefault   Boolean                 @default(false)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  fields      ProjectTemplateField[]
+  projects    Project[]
+
+  @@map("project_templates")
+}
+
+// ─── جدول حقول قوالب المشاريع ────────────────────────────────────
+model ProjectTemplateField {
+  id            String          @id @default(cuid())
+  templateId    String
+  name          String
+  type          CustomFieldType
+  description   String?
+  isRequired    Boolean         @default(false)
+  showInTable   Boolean         @default(true)
+  showInReport  Boolean         @default(true)
+  isExecutorEditable Boolean    @default(true)
+  isFilterable  Boolean         @default(false)
+  order         Int             @default(0)
+  options       Json?           // خيارات الاختيار الواحد أو المتعدد
+
+  template      ProjectTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("project_template_fields")
+}

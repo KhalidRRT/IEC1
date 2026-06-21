@@ -1,0 +1,39 @@
+# الحزم
+node_modules/
+.pnp
+.pnp.js
+
+# بيئة Next.js
+.next/
+out/
+build/
+
+# إنتاج
+dist/
+
+# متغيرات البيئة
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# سجلات
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma
+prisma/migrations/
+
+# المرفقات
+public/uploads/*
+!public/uploads/.gitkeep
+
+# التشخيص
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
