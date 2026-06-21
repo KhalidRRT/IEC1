@@ -120,7 +120,6 @@ export default async function TaskDetailPage({
               <TaskActions
                 taskId={task.id}
                 taskStatus={task.status}
-                onRefresh={() => {}}
               />
             </CardContent>
           </Card>
@@ -208,7 +207,7 @@ export default async function TaskDetailPage({
             <CardContent className="p-4 space-y-4">
               {/* صندوق التعليق — client component */}
               {session.user.role !== "READER" && (
-                <CommentBox taskId={task.id} onRefresh={() => {}} />
+                <CommentBox taskId={task.id} />
               )}
 
               {/* قائمة التعليقات */}

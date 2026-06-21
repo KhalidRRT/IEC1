@@ -27,10 +27,9 @@ const NEXT_STATUS_OPTIONS: Record<string, { label: string; value: string }[]> = 
 interface TaskActionsProps {
   taskId: string;
   taskStatus: string;
-  onRefresh: () => void;
 }
 
-export function TaskActions({ taskId, taskStatus, onRefresh }: TaskActionsProps) {
+export function TaskActions({ taskId, taskStatus }: TaskActionsProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [isIssuing, setIsIssuing] = useState(false);
@@ -112,10 +111,9 @@ export function TaskActions({ taskId, taskStatus, onRefresh }: TaskActionsProps)
 
 interface CommentBoxProps {
   taskId: string;
-  onRefresh: () => void;
 }
 
-export function CommentBox({ taskId, onRefresh }: CommentBoxProps) {
+export function CommentBox({ taskId }: CommentBoxProps) {
   const router = useRouter();
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
